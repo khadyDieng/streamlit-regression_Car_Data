@@ -11,7 +11,7 @@ import pandas as pd
 import joblib as jb
 import streamlit as st
 
-st.set_page_config(page_title="Prix d'une voiture", page_icon="💰", layout="wide")
+st.set_page_config(page_title="Prix d'une voiture", page_icon="🏷️", layout="centered")
 
 
 # ---------- Objets issus du notebook (chargés une seule fois) ----------
@@ -46,17 +46,11 @@ def Pred_func_csv(fichier):
     return tableau
 
 
-# ---------- Barre latérale ----------
-with st.sidebar:
-    st.header("À propos")
-    st.write("Six algorithmes de régression ont été comparés (linéaire, Ridge, Lasso, arbre, "
-             "Random Forest, XGBoost) ; le meilleur sur la validation est utilisé ici.")
-    st.caption("Projet Machine Learning — régression")
+st.title("🏷️ Prix de vente d'une voiture")
+st.caption("Estimation du prix de vente (en milliers de dollars) d'une voiture d'occasion.")
+onglet_un, onglet_csv = st.tabs(["Une voiture", "Fichier CSV"])
 
-st.title("💰 À quel prix cette voiture peut-elle se vendre ?")
-choix = st.radio("Mode", ["Une voiture", "Un fichier CSV"], horizontal=True)
-
-if choix == "Une voiture":
+with onglet_un:
     gauche, droite = st.columns(2)
     with gauche:
         Kms_Driven = st.number_input("Kilométrage", min_value=0, value=60_000, step=5_000)
@@ -67,13 +61,14 @@ if choix == "Une voiture":
         Seller_Type = st.radio("Vendeur", list(encoders[1].classes_), horizontal=True)
         Transmission = st.radio("Boîte de vitesses", list(encoders[2].classes_), horizontal=True)
 
-    if st.button("Lancer la prédiction", type="primary"):
+    if st.button("Prédire", type="primary", use_container_width=True):
         try:
             prix = Pred_func(Kms_Driven, Present_Price, Fuel_Type, Seller_Type, Transmission, Age)
-            st.metric("Prix de vente estimé", f"{prix} k$")
+            resultat = f"{prix} k$"
+            st.success(f"**Prix de vente estimé :** {resultat}")
         except Exception as erreur:
             st.error(f"Prédiction impossible : {erreur}")
-else:
+with onglet_csv:
     st.info("Colonnes attendues, dans cet ordre : Kms_Driven, Present_Price, Fuel_Type, Seller_Type, "
             "Transmission, Age.")
     fichier = st.file_uploader("Choisir un fichier CSV", type="csv")
@@ -81,7 +76,7 @@ else:
         try:
             tableau = Pred_func_csv(fichier)
             st.dataframe(tableau, use_container_width=True)
-            st.download_button("Récupérer les résultats (CSV)", tableau.to_csv(index=False).encode("utf-8"),
+            st.download_button("Télécharger les résultats", tableau.to_csv(index=False).encode("utf-8"),
                                "resultats_prix.csv", "text/csv")
         except Exception as erreur:
             st.error(f"Fichier non traité : {erreur}")
